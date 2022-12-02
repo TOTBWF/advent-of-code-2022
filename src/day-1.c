@@ -1,5 +1,7 @@
 #include <immintrin.h>
+#include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "day-1-input.c"
 
@@ -85,6 +87,8 @@ int pqueue_top(__m128i pqueue) {
 }
 
 int main() {
+  clock_t start_time = clock();
+
   uint8_t *input = day_1_txt;
   uint32_t current = 0;
   __m128i pqueue = _mm_set1_epi32(0);
@@ -103,6 +107,8 @@ int main() {
       input += 6;
     }
   }
-  printf("Sum of Top  : %d\nSum of Top 3: %d\n", pqueue_top(pqueue), pqueue_top_3(pqueue));
+
+  double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+  printf("Sum of Top  : %d\nSum of Top 3: %d\nCompleted in %1.0lf microseconds", pqueue_top(pqueue), pqueue_top_3(pqueue), elapsed_time * pow(10, 6));
   return 0;
 }

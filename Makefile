@@ -1,4 +1,4 @@
-.PHONY: day-1 day-2
+.PHONY: day-1 day-2 clean
 
 ./src/day-1-input.c:
 	xxd -i day-1.txt > day-1-input.c
@@ -17,3 +17,6 @@ day-1: ./bin/day-1
 
 day-2: ./bin/day-2
 	./bin/day-2
+
+clean:
+	rm ./bin/*

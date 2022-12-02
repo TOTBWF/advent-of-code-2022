@@ -1,5 +1,7 @@
 #include <immintrin.h>
+#include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "day-2-input.c"
 
@@ -80,6 +82,8 @@ int32_t lookup_outcome(__m128i index) {
 }
 
 int main() {
+  clock_t start_time = clock();
+
   uint8_t* input = day_2_txt;
   int32_t total_score = 0;
   int32_t total_outcome = 0;
@@ -89,5 +93,8 @@ int main() {
     total_score += lookup_score(index);
     total_outcome += lookup_outcome(index);
   }
-  printf("Total Score:   %d\nTotal Outcome: %d", total_score, total_outcome);
+
+  double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+  printf("Total Score:   %d\nTotal Outcome: %d\nCompleted in %1.0lf microseconds", total_score, total_outcome, elapsed_time * pow(10, 6));
+  return 0;
 }
