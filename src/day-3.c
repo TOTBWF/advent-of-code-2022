@@ -1,7 +1,4 @@
-#include <emmintrin.h>
 #include <immintrin.h>
-#include <smmintrin.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -21,7 +18,7 @@
 //
 // Each 64-bit bitset is stored in 2 halves; extracting the full bitset
 // requires a horizontal and across each 128-bit lane.
-__m256i bitset_epi8x32(__m256i input) {
+static inline __m256i bitset_epi8x32(__m256i input) {
   __m256i chunk = _mm256_sub_epi8(input, _mm256_set1_epi8(0x41));
 
   __m256i shuffle_mask_0 = SHUFFLE_256_MASK(0);
