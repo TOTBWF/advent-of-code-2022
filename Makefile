@@ -36,6 +36,9 @@ day-2: ./bin/day-2
 ./src/day-3-input.c:
 	xxd -i ./src/day-3.txt > ./src/day-3-input.c
 
+./asm/day-3.s: ./src/day-3-input.c ./src/day-3.c ./asm
+	clang ./src/day-3.c -march=native -O3 -S -masm=intel -I ./src/day-3-input.c -o ./asm/day-3.s
+
 ./bin/day-3: ./src/day-3-input.c ./src/day-3.c ./bin
 	clang ./src/day-3.c -march=native -O3 -I ./src/day-3-input.c -o ./bin/day-3
 

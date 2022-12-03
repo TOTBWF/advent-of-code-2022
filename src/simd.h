@@ -30,6 +30,13 @@ static inline uint64_t _mm256_hor_epi64(__m256i x) {
   return _mm_hor_epi64(or128);
 }
 
+static inline uint64_t _mm_hand_epi64(__m128i x) {
+  const __m128i hi64 = _mm_unpackhi_epi64(x, x);
+  const __m128i lo64 = _mm_unpacklo_epi64(x, x);
+  const __m128i or64 = _mm_and_si128(hi64, lo64);
+  return _mm_cvtsi128_si64(or64);
+}
+
 static inline uint32_t _mm256_line_len(uint8_t *str) {
   __m256i newline = _mm256_set1_epi8('\n');
   int32_t i = 0;
