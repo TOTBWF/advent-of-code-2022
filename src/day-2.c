@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "day-2-input.c"
+#include "simd.h"
 
 #define INVALID 0
 
@@ -23,7 +24,7 @@ static inline __m128i create_index(__m128i chunk) {
   
 }
 
-int32_t lookup_score(__m128i index) {
+static inline __m128i lookup_score(__m128i index) {
   // For player 1, the relevant characters are:
   // 'A' (0x41)
   // 'B' (0x42)
@@ -50,13 +51,10 @@ int32_t lookup_score(__m128i index) {
 		  3 + 3,   // 0b1110 (Scissors/Scissors)
 		  INVALID  // 0b1111 
 		  );
-  const __m128i scores = _mm_shuffle_epi8(table, index);
-  const __m128i total_interm = _mm_hadd_epi32(scores, scores);
-  const __m128i total = _mm_hadd_epi32(total_interm, total_interm);
-  return _mm_cvtsi128_si32(total);
+  return _mm_shuffle_epi8(table, index);
 }
 
-int32_t lookup_outcome(__m128i index) {
+static inline __m128i lookup_outcome(__m128i index) {
   const __m128i table =
     _mm_setr_epi8(INVALID, // 0b0000
 		  INVALID, // 0b0001
@@ -75,26 +73,25 @@ int32_t lookup_outcome(__m128i index) {
 		  6 + 1,   // 0b1110 (Scissors/Win)
 		  INVALID  // 0b1111 
 		  );
-  const __m128i scores = _mm_shuffle_epi8(table, index);
-  const __m128i total_interm = _mm_hadd_epi32(scores, scores);
-  const __m128i total = _mm_hadd_epi32(total_interm, total_interm);
-  return _mm_cvtsi128_si32(total);
+  return _mm_shuffle_epi8(table, index);
 }
 
 int main() {
   clock_t start_time = clock();
 
   uint8_t* input = day_2_txt;
-  int32_t total_score = 0;
-  int32_t total_outcome = 0;
-  int32_t actual[4] = {0, 0, 0, 0};
+  __m128i score_acc = _mm_set1_epi32(0);
+  __m128i outcome_acc = _mm_set1_epi32(0);
   for(int i = 0; i < day_2_txt_len; i += 16) {
     const __m128i index = create_index(_mm_loadu_si128((__m128i*)(input + i)));
-    total_score += lookup_score(index);
-    total_outcome += lookup_outcome(index);
+    score_acc = _mm_add_epi32(score_acc, lookup_score(index));
+    outcome_acc = _mm_add_epi32(outcome_acc, lookup_outcome(index));
   }
 
+  int32_t score = _mm_hsum_epi32(score_acc);
+  int32_t outcome = _mm_hsum_epi32(outcome_acc);
+
   double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-  printf("Total Score:   %d\nTotal Outcome: %d\nCompleted in %1.0lf microseconds", total_score, total_outcome, elapsed_time * pow(10, 6));
+  printf("Total Score:   %d\nTotal Outcome: %d\nCompleted in %1.0lf microseconds", score, outcome, elapsed_time * pow(10, 6));
   return 0;
 }
