@@ -1,5 +1,6 @@
 #include <emmintrin.h>
 #include <immintrin.h>
+#include <stdio.h>
 
 // https://stackoverflow.com/a/60109639
 static inline uint32_t _mm_hsum_epi32(__m128i x) {
@@ -62,4 +63,35 @@ static inline __m256i _mm256_expand_mask(uint32_t mask) {
   const __m256i bit_mask = _mm256_set1_epi64x(0x7fbfdfeff7fbfdfe);
   vmask = _mm256_or_si256(vmask, bit_mask);
   return _mm256_cmpeq_epi8(vmask, _mm256_set1_epi64x(-1));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Debugging Functions
+
+void print_hex_epi16x8(__m128i v) {
+  printf("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+	 _mm_extract_epi16(v, 0),
+	 _mm_extract_epi16(v, 1),
+	 _mm_extract_epi16(v, 2),
+	 _mm_extract_epi16(v, 3),
+	 _mm_extract_epi16(v, 4),
+	 _mm_extract_epi16(v, 5),
+	 _mm_extract_epi16(v, 6),
+	 _mm_extract_epi16(v, 7));
+}
+
+void print_hex_epi32x4(__m128i v) {
+  printf("0x%x 0x%x 0x%x 0x%x\n",
+	 _mm_extract_epi32(v, 0),
+	 _mm_extract_epi32(v, 1),
+	 _mm_extract_epi32(v, 2),
+	 _mm_extract_epi32(v, 3));
+}
+
+void print_epi32x4(__m128i v) {
+  printf("%d %d %d %d\n",
+	 _mm_extract_epi32(v, 0),
+	 _mm_extract_epi32(v, 1),
+	 _mm_extract_epi32(v, 2),
+	 _mm_extract_epi32(v, 3));
 }

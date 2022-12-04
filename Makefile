@@ -45,5 +45,18 @@ day-2: ./bin/day-2
 day-3: ./bin/day-3
 	./bin/day-3
 
+## Day 4
+./src/day-4-input.c:
+	xxd -i ./src/day-4.txt > ./src/day-4-input.c
+
+./asm/day-4.s: ./src/day-4-input.c ./src/day-4.c ./asm
+	clang ./src/day-4.c -march=native -O3 -S -masm=intel -I ./src/day-4-input.c -o ./asm/day-4.s
+
+./bin/day-4: ./src/day-4-input.c ./src/day-4.c ./bin
+	clang ./src/day-4.c -march=native -O3 -I ./src/day-4-input.c -o ./bin/day-4
+
+day-4: ./bin/day-4
+	./bin/day-4
+
 clean:
 	rm -f ./bin/* rm -f ./asm/*

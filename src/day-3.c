@@ -113,4 +113,5 @@ int main() {
 
   double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
   printf("Priority Sum: %d\nGroup Priority Sum: %d\nCompleted in %1.0lf microseconds", _mm_hsum_epi32(rearrange_priorities), group_priorities, elapsed_time * pow(10, 6));
+  return 0;
 }
