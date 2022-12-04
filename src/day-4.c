@@ -1,6 +1,4 @@
-#include <emmintrin.h>
 #include <immintrin.h>
-#include <popcntintrin.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -55,6 +53,8 @@ int main() {
 
     _MM_TRANSPOSE4_PS(range0, range1, range2, range3);
 
+    // NOTE: We don't have _mm_cmple_epi32 until AVX-512, so
+    // we have to emulate it by doing strict comparisons + equality tests.
     const __m128i lo_lo_lt = _mm_cmplt_epi32(range0, range2);
     const __m128i lo_lo_eq = _mm_cmpeq_epi32(range0, range2);
     const __m128i lo_lo_gt = _mm_cmpgt_epi32(range0, range2);
