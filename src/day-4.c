@@ -1,40 +1,64 @@
+#include <emmintrin.h>
 #include <immintrin.h>
+#include <smmintrin.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <tmmintrin.h>
 
 #include "day-4-input.c"
 #include "simd.h"
 
 static inline __m128i extract_range_epi32x4(uint8_t *input, uint32_t *offset) {
   const __m128i chunk = _mm_loadu_si128((__m128i*) (input + *offset));
-  const uint16_t dash_positions = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, _mm_set1_epi8('-')));
-  const uint16_t comma_position = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, _mm_set1_epi8(',')));
-  const uint16_t newline_position = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, _mm_set1_epi8('\n')));
-  const uint16_t dash_lo = _mm_tzcnt_64(dash_positions);
-  const uint16_t dash_hi = _mm_tzcnt_64(dash_positions >> (dash_lo + 1)) + dash_lo + 1;
-  const uint16_t comma = _mm_tzcnt_64(comma_position);
-  const uint16_t newline = _mm_tzcnt_64(newline_position);
+  const __m128i symbols = _mm_cmplt_epi8(chunk, _mm_set1_epi8('0'));
 
-  const __m128i start =
-    _mm_add_epi8(_mm_set_epi8(0x7f, 0x7f, 0x7f, dash_hi,
-			      0x7f, 0x7f, 0x7f, comma,
-			      0x7f, 0x7f, 0x7f, dash_lo,
-			      0x7f, 0x7f, 0x7f, -1),
-		 _mm_set1_epi8(1));
-  const __m128i end =
-    _mm_sub_epi8(_mm_set_epi8(0x81, 0x81, 0x81, newline,
-			      0x81, 0x81, 0x81, dash_hi,
-			      0x81, 0x81, 0x81, comma,
-			      0x81, 0x81, 0x81, dash_lo),
-		 _mm_set1_epi8(1));
+  // Compress down the mask to a 16x4i.
+  __m128i mask = _mm_srli_epi64(symbols, 4);
+  const __m128i compress_mask =
+    _mm_set_epi8(0x80, 0x80, 0x80, 0x80,
+		 0x80, 0x80, 0x80, 0x80,
+		 0x0E, 0x0C, 0x0A, 0x08,
+		 0x06, 0x04, 0x02, 0x00);
+  mask = _mm_shuffle_epi8(mask, compress_mask);
+  const uint64_t mask64 = _mm_cvtsi128_si64(mask);
+  // Extract the relevant 4-bit indicies, and store them in the low bits.
+  __m128i indicies = _mm_cvtsi64_si128(_pext_u64(0xFEDCBA9876543210, mask64));
+
+  indicies = _mm_unpacklo_epi8(indicies, _mm_srli_epi64(indicies, 4));
+  const __m128i indicies_mask =
+    _mm_setr_epi8(0x0F, 0x0F, 0x0F, 0x0F,
+		  0x00, 0x00, 0x00, 0x00,
+		  0x00, 0x00, 0x00, 0x00,
+		  0x00, 0x00, 0x00, 0x00);
+  indicies = _mm_and_si128(indicies, indicies_mask);
+  /* Store on magic values. */
+  const __m128i magic =
+    _mm_setr_epi8(0x00, 0x00, 0x00, 0x00,
+		  0xFF, 0x7f, 0x81, 0x00,
+		  0x00, 0x00, 0x00, 0x00,
+		  0x00, 0x00, 0x00, 0x00);
+  indicies = _mm_or_si128(indicies, magic);
+
+  const __m128i start_shuffle =
+    _mm_set_epi8(5, 5, 5, 2,
+		 5, 5, 5, 1,
+		 5, 5, 5, 0,
+		 5, 5, 5, 4);
+  const __m128i start = _mm_add_epi8(_mm_shuffle_epi8(indicies, start_shuffle), _mm_set1_epi8(1));
+  const __m128i end_shuffle =
+    _mm_set_epi8(6, 6, 6, 3,
+		 6, 6, 6, 2,
+		 6, 6, 6, 1,
+		 6, 6, 6, 0);
+  const __m128i end = _mm_sub_epi8(_mm_shuffle_epi8(indicies, end_shuffle), _mm_set1_epi8(1));
 
   __m128i normalized = _mm_sub_epi8(chunk, _mm_set1_epi8('0'));
   __m128i scale = _mm_mullo_epi32(_mm_set1_epi32(10), _mm_sub_epi32(end, start));
   __m128i hi = _mm_mullo_epi32(scale, _mm_shuffle_epi8(normalized, start)) ;
   __m128i lo = _mm_shuffle_epi8(normalized, end);
 
-  *offset += newline + 1;
+  *offset += _mm_extract_epi8(indicies, 3) + 1;
   return _mm_add_epi32(hi, lo);
 }
 
