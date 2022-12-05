@@ -32,17 +32,17 @@ static inline __m256i parse_crate_line(uint8_t *input, uint32_t *offset) {
   // are weird, as we can't shuffle between lanes.
   const __m256i shuffle =
     _mm256_setr_epi8(0, 4, 8, 12, 0x80, 0x80, 0x80, 0x80,
-		     0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-		     0, 4, 8, 12, 0x80, 0x80, 0x80, 0x80,
-		     0x80, 0x80, 0x80, 0x80, 0x80, 0x08, 0x80, 0x80);
+                     0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                     0, 4, 8, 12, 0x80, 0x80, 0x80, 0x80,
+                     0x80, 0x80, 0x80, 0x80, 0x80, 0x08, 0x80, 0x80);
   __m256i crates = _mm256_shuffle_epi8(chunk, shuffle);
   // Tack on the 9th crate that we had to load separately.
   __m256i ninth_crate = _mm256_set1_epi8(ninth);
   const __m256i ninth_crate_mask =
     _mm256_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0,
-		     0, 0, 0, 0, 0, 0, 0, 0,
-		     0, 0, 0, 0, 0xff, 0, 0, 0,
-		     0, 0, 0, 0, 0, 0, 0, 0);
+                     0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0xff, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0);
   crates = _mm256_blendv_epi8(crates, ninth_crate, ninth_crate_mask);
   // Replace any space characters with a 0.
   __m256i mask = _mm256_cmpeq_epi8(crates, _mm256_set1_epi8(' '));
@@ -66,7 +66,7 @@ static inline __m256i parse_move_epi8x4(uint8_t *input, uint32_t *offset) {
   // For the 3rd and 4th bytes, we just need to add the appropriate offset.
   const __m256i digits_shuffle =
     _mm256_setr_epi8(5, 0x80, 6, 0x80,
-		     digit_offset + 12, 0x80, 0x80, 0x80,
+                     digit_offset + 12, 0x80, 0x80, 0x80,
                      0x80, 0x80, 0x80, 0x80,
                      0x80, 0x80, 0x80, 0x80,
                      digit_offset + 1, 0x80, 0x80, 0x80,
@@ -83,9 +83,9 @@ static inline __m256i parse_move_epi8x4(uint8_t *input, uint32_t *offset) {
   digits = _mm256_sub_epi8(digits, _mm256_set1_epi8('0'));
   const __m256i scale =
     _mm256_setr_epi16(1 + 9*digit_offset, 1, 1, 1,
-		      1, 1, 1, 1,
-		      1, 1, 1, 1,
-		      1, 1, 1, 1);
+                      1, 1, 1, 1,
+                      1, 1, 1, 1,
+                      1, 1, 1, 1);
   digits = _mm256_mullo_epi16(digits, scale);
   return digits;
 }
@@ -152,8 +152,8 @@ static inline void move_crates_rev_sse(crate_stack_t* src, crate_stack_t* dst, u
     uint8_t byte = _mm256_extract_epi8(line, ix);                              \
     crates[n].bytes[7 - i] = byte;                                             \
     crates[n].size += (byte != 0);                                             \
-    crates_rev[n].bytes[7 - i] = byte;			\
-    crates_rev[n].size += (byte != 0);			\
+    crates_rev[n].bytes[7 - i] = byte;                  \
+    crates_rev[n].size += (byte != 0);                  \
   } while (0)
 
 #define CRATE_STACK_TOP(n) crates[n].bytes[crates[n].size - 1]
@@ -215,24 +215,24 @@ int main() {
   double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
 
   printf("Rev Crates: %c%c%c%c%c%c%c%c%c\n",
-	 CRATE_REV_STACK_TOP(0),
-	 CRATE_REV_STACK_TOP(1),
-	 CRATE_REV_STACK_TOP(2),
-	 CRATE_REV_STACK_TOP(3),
-	 CRATE_REV_STACK_TOP(4),
-	 CRATE_REV_STACK_TOP(5),
-	 CRATE_REV_STACK_TOP(6),
-	 CRATE_REV_STACK_TOP(7),
-	 CRATE_REV_STACK_TOP(8));
+         CRATE_REV_STACK_TOP(0),
+         CRATE_REV_STACK_TOP(1),
+         CRATE_REV_STACK_TOP(2),
+         CRATE_REV_STACK_TOP(3),
+         CRATE_REV_STACK_TOP(4),
+         CRATE_REV_STACK_TOP(5),
+         CRATE_REV_STACK_TOP(6),
+         CRATE_REV_STACK_TOP(7),
+         CRATE_REV_STACK_TOP(8));
   printf("Crates:     %c%c%c%c%c%c%c%c%c\n",
-	 CRATE_STACK_TOP(0),
-	 CRATE_STACK_TOP(1),
-	 CRATE_STACK_TOP(2),
-	 CRATE_STACK_TOP(3),
-	 CRATE_STACK_TOP(4),
-	 CRATE_STACK_TOP(5),
-	 CRATE_STACK_TOP(6),
-	 CRATE_STACK_TOP(7),
-	 CRATE_STACK_TOP(8));
+         CRATE_STACK_TOP(0),
+         CRATE_STACK_TOP(1),
+         CRATE_STACK_TOP(2),
+         CRATE_STACK_TOP(3),
+         CRATE_STACK_TOP(4),
+         CRATE_STACK_TOP(5),
+         CRATE_STACK_TOP(6),
+         CRATE_STACK_TOP(7),
+         CRATE_STACK_TOP(8));
   printf("Completed in %1.0lf microseconds", elapsed_time * pow(10, 6));
 }
