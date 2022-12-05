@@ -104,8 +104,7 @@ static inline void move_crates_sse(crate_stack_t* src, crate_stack_t* dst, uint8
   __m128i *src_ptr = (__m128i*) (src->bytes + src->size - count);
   __m128i *dst_ptr = (__m128i*) (dst->bytes + dst->size);
   __m128i bytes = _mm_loadu_si128(src_ptr);
-  // Zero out the bytes read from src, and write the reversed
-  // bytes to dst.
+  // Zero out the bytes read from src, and write the bytes to dst.
   _mm_storeu_si128(src_ptr, _mm_setzero_si128());
   _mm_storeu_si128(dst_ptr, bytes);
   src->size -= count;
@@ -200,7 +199,10 @@ int main() {
     // We unfortunately need to branch here, as SSE vectors
     // can't fit any more bytes.
     // We could use AVX2 256-bit wide vectors, but the
-    // cross lane shuffle for the reverse sounded very annoying.
+    // cross lane shuffle required for the reverse is very annoying,
+    // and we'd still need to fall back to scalar ops for some cases.
+    // Luckilly we don't need to fall back to the scalar impl too often,
+    // so this should be friendly to the branch predictor.
     if (count <= 16) {
       move_crates_sse(src, dst, count);
       move_crates_rev_sse(src_rev, dst_rev, count);
