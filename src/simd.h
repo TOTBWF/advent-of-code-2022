@@ -88,6 +88,26 @@ void print_hex_epi8x16(__m128i v) {
 	 _mm_extract_epi8(v, 15));
 }
 
+void print_epi8x16(__m128i v) {
+  printf("%c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c\n",
+	 _mm_extract_epi8(v, 0),
+	 _mm_extract_epi8(v, 1),
+	 _mm_extract_epi8(v, 2),
+	 _mm_extract_epi8(v, 3),
+	 _mm_extract_epi8(v, 4),
+	 _mm_extract_epi8(v, 5),
+	 _mm_extract_epi8(v, 6),
+	 _mm_extract_epi8(v, 7),
+	 _mm_extract_epi8(v, 8),
+	 _mm_extract_epi8(v, 9),
+	 _mm_extract_epi8(v, 10),
+	 _mm_extract_epi8(v, 11),
+	 _mm_extract_epi8(v, 12),
+	 _mm_extract_epi8(v, 13),
+	 _mm_extract_epi8(v, 14),
+	 _mm_extract_epi8(v, 15));
+}
+
 void print_hex_epi16x8(__m128i v) {
   printf("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
 	 _mm_extract_epi16(v, 0),
