@@ -1,10 +1,7 @@
-#include <emmintrin.h>
 #include <immintrin.h>
-#include <smmintrin.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include <tmmintrin.h>
 
 #include "day-4-input.c"
 #include "simd.h"
