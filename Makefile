@@ -1,4 +1,5 @@
 .PHONY: run clean
+.PRECIOUS: ./input/%-input.h
 
 ./bin:
 	mkdir ./bin

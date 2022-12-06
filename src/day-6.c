@@ -160,6 +160,7 @@ static inline uint32_t find_msg_start(uint8_t* input, size_t len) {
 
 int main() {
   // Part 1
+  printf("==========[Part 1]==========\n");
   clock_t part_1_start = clock();
   uint32_t pkt_start = find_pkt_start(input_day_6_txt, input_day_6_txt_len);
   double part_1_time = (double)(clock() - part_1_start) / CLOCKS_PER_SEC;
