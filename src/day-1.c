@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "day-1-input.c"
+#include "day-1-input.h"
 
 uint32_t parse_4_digits(const __m128i input) {
   const __m128i char_0 = _mm_set1_epi8('0');
@@ -89,7 +89,7 @@ int pqueue_top(__m128i pqueue) {
 int main() {
   clock_t start_time = clock();
 
-  uint8_t *input = day_1_txt;
+  uint8_t *input = input_day_1_txt;
   uint32_t current = 0;
   __m128i pqueue = _mm_set1_epi32(0);
   while(*input) {

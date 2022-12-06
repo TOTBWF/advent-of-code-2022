@@ -3,7 +3,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "day-6-input.c"
+#include "day-6-input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Day 6
@@ -161,13 +161,13 @@ static inline uint32_t find_msg_start(uint8_t* input, size_t len) {
 int main() {
   // Part 1
   clock_t part_1_start = clock();
-  uint32_t pkt_start = find_pkt_start(__src_day_6_txt, __src_day_6_txt_len);
+  uint32_t pkt_start = find_pkt_start(input_day_6_txt, input_day_6_txt_len);
   double part_1_time = (double)(clock() - part_1_start) / CLOCKS_PER_SEC;
   printf("%d\n", pkt_start);
   printf("Completed in %1.0lf microseconds\n", part_1_time * pow(10, 6));
   printf("==========[Part 2]==========\n");
   clock_t part_2_start = clock();
-  uint32_t msg_start = find_msg_start(__src_day_6_txt, __src_day_6_txt_len);
+  uint32_t msg_start = find_msg_start(input_day_6_txt, input_day_6_txt_len);
   double part_2_time = (double)(clock() - part_2_start) / CLOCKS_PER_SEC;
   printf("%d\n", msg_start);
   printf("Completed in %1.0lf microseconds\n", part_2_time * pow(10, 6));

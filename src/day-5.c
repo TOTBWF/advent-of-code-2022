@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "simd.h"
-#include "day-5-input.c"
+#include "day-5-input.h"
 
 #define CRATE_BYTES 92
 
@@ -161,7 +161,7 @@ static inline void move_crates_rev_sse(crate_stack_t* src, crate_stack_t* dst, u
 int main() {
   clock_t start_time = clock();
 
-  uint8_t *input = __src_day_5_txt;
+  uint8_t *input = input_day_5_txt;
   uint32_t offset = 0;
   crate_stack_t crates[9] = {};
   crate_stack_t crates_rev[9] = {};
@@ -186,7 +186,7 @@ int main() {
 
   offset += 37;
 
-  while(offset < __src_day_5_txt_len) {
+  while(offset < input_day_5_txt_len) {
     const __m256i move = parse_move_epi8x4(input, &offset);
     _mm256_storeu_si256((__m256i*) bytes, move);
     crate_stack_t *src = crates + bytes[4] - 1;

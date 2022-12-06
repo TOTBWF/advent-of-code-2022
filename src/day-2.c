@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "day-2-input.c"
+#include "day-2-input.h"
 #include "simd.h"
 
 #define INVALID 0
@@ -79,10 +79,10 @@ static inline __m128i lookup_outcome(__m128i index) {
 int main() {
   clock_t start_time = clock();
 
-  uint8_t* input = day_2_txt;
+  uint8_t* input = input_day_2_txt;
   __m128i score_acc = _mm_set1_epi32(0);
   __m128i outcome_acc = _mm_set1_epi32(0);
-  for(int i = 0; i < day_2_txt_len; i += 16) {
+  for(int i = 0; i < input_day_2_txt_len; i += 16) {
     const __m128i index = create_index(_mm_loadu_si128((__m128i*)(input + i)));
     score_acc = _mm_add_epi32(score_acc, lookup_score(index));
     outcome_acc = _mm_add_epi32(outcome_acc, lookup_outcome(index));

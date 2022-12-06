@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "simd.h"
-#include "day-3-input.c"
+#include "day-3-input.h"
 
 
 #define SHUFFLE_256_MASK(n)                                                    \
@@ -88,11 +88,11 @@ int main() {
   clock_t start_time = clock();
 
   uint32_t offset = 0;
-  uint8_t* input = __src_day_3_txt;
+  uint8_t* input = input_day_3_txt;
   __m128i rearrange_priorities = _mm_setzero_si128();
   uint32_t group_priorities = 0;
   __m128i rucksack_bv;
-  while(offset < __src_day_3_txt_len) {
+  while(offset < input_day_3_txt_len) {
     rucksack_contents(input, &offset, &rucksack_bv);
     const uint8_t diff0 = _tzcnt_u64(_mm_hand_epi64(rucksack_bv));
     uint64_t group = _mm_hor_epi64(rucksack_bv);

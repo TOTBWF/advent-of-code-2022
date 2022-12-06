@@ -3,7 +3,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "day-4-input.c"
+#include "day-4-input.h"
 #include "simd.h"
 
 static inline __m128i extract_range_epi32x4(uint8_t *input, uint32_t *offset) {
@@ -62,11 +62,11 @@ static inline __m128i extract_range_epi32x4(uint8_t *input, uint32_t *offset) {
 int main() {
   clock_t start_time = clock();
 
-  uint8_t *input = __src_day_4_txt;
+  uint8_t *input = input_day_4_txt;
   uint32_t offset = 0;
   uint32_t contains = 0;
   uint32_t overlaps = 0;
-  while (offset < __src_day_4_txt_len) {
+  while (offset < input_day_4_txt_len) {
     __m128i range0 = extract_range_epi32x4(input, &offset);
     __m128i range1 = extract_range_epi32x4(input, &offset);
     __m128i range2 = extract_range_epi32x4(input, &offset);
