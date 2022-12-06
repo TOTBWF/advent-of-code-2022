@@ -20,7 +20,6 @@ typedef struct crate_stack {
 // first lane, and the 9th character in the low byte of the
 // second lane.
 static inline __m256i parse_crate_line(uint8_t *input, uint32_t *offset) {
-  // TODO: This code is broken
   const __m256i chunk = _mm256_loadu_si256((__m256i*)(input + 1 + *offset));
   // Annoyingly, this lies just outside of the range that we can
   // fit inside of a 256-bit wide vector.
