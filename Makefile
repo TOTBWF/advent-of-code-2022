@@ -1,11 +1,11 @@
 .PHONY: run clean
 .PRECIOUS: ./input/%-input.h
 
-./bin:
-	mkdir ./bin
+run: ./bin/day-$(day)
+	./bin/day-$(day)
 
-./asm:
-	mkdir ./asm
+clean:
+	rm -f ./bin/* rm -f ./asm/*
 
 ./input/%-input.h: ./input/%.txt
 	xxd -i $< > $@
@@ -16,8 +16,8 @@
 ./bin/%: ./src/%.c ./input/%-input.h  ./bin
 	clang $< -march=native -O3 -I ./input/ -o $@
 
-run: ./bin/day-$(day)
-	./bin/day-$(day)
+./bin:
+	mkdir ./bin
 
-clean:
-	rm -f ./bin/* rm -f ./asm/*
+./asm:
+	mkdir ./asm

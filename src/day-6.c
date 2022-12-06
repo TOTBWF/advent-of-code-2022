@@ -47,7 +47,6 @@
 
 static inline uint32_t find_pkt_start(uint8_t* input, size_t len) {
   uint32_t offset = 0;
-  uint32_t pkt_start = 0;
   while (offset < len) {
     __m128i chunk = _mm_loadu_si128((__m128i*) (input + offset));
     __m128i shifted = chunk;
