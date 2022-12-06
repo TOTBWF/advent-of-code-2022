@@ -1,5 +1,7 @@
-.PHONY: run clean
+.PHONY: all run clean
 .PRECIOUS: ./input/%-input.h
+
+all: ./bin/day-1 ./bin/day-2 ./bin/day-3 ./bin/day-4 ./bin/day-5 ./bin/day-6
 
 run: ./bin/day-$(day)
 	./bin/day-$(day)
