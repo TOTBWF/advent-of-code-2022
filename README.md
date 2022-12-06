@@ -5,7 +5,7 @@ So far I've been doing most of my solutions in C with heavy use of SIMD.
 
 ## Compiling
 
-To run the solution for the nth day, use `make day-<n>`.
+To run the solution for the nth day, use `make run day=<n>`.
 
 ## Notes
 
