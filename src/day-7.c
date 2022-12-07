@@ -9,6 +9,40 @@
 #include "simd.h"
 #include "day-7-input.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// Day 7
+//
+// This day doesn't seem too amenable to SIMD at first blush, but we can
+// reframe the problem to make it much more feasible.
+// Instead of working with the directory tree, we look at the
+// adjacency matrix of the reflexive + transitive closure of the tree regarded
+// as a DAG (IE: the free quiver on the tree).
+// For instance, consider the following directory tree.
+//
+// - /
+//   - a
+//     - e
+//   - d
+//
+// It's associated adjacency matrix is:
+//
+// 1 0 0 0
+// 1 1 0 0
+// 1 1 1 0
+// 1 0 0 1
+//
+// In doing so, we trade off space for the opportunity to vectorize.
+// To see this, consider how we might add a file of size 3 to the directory
+// e.
+// We start by broadcasting 3 to a [4 * 32i] vector, getting [3, 3, 3, 3].
+// We then look up the row corresponding to e, which is [1, 1, 1, 0].
+// We use this to mask off our vector of 3's, obtaining [3, 3, 3, 0],
+// which we can then add to the running tally.
+//
+// Note that this matrix is lower triangular; it would be a smart optimization
+// to not store the upper half. However, this is non-trivial to implement,
+// and I've already spent far too much time optimizing a silly puzzle.
+
 // Each column consists of a [8 * 32i] vector,
 // so we divide by 8 to get the number of columns.
 #define FILETREE_ROWS 175
@@ -31,6 +65,7 @@ static inline void alloc_tree(filetree_t *tree) {
   tree->cwd = 0;
 }
 
+// Print out the adjacency matrix.
 void print_adjacency(filetree_t *tree) {
   for(int row = 0; row < FILETREE_ROWS; row++) {
     for(int col = 0; col < FILETREE_COLUMNS*8; col++) {
@@ -40,9 +75,10 @@ void print_adjacency(filetree_t *tree) {
   }
 }
 
-static inline void add_count(filetree_t *tree, uint32_t count) {
+// Add a file of 'size' to the current working directory.
+static inline void add_file(filetree_t *tree, uint32_t size) {
   __m256i *dir_adj = (__m256i*) (tree->adjacency + 8 * FILETREE_COLUMNS * tree->cwd);
-  __m256i bdcst_count = _mm256_set1_epi32(count);
+  __m256i bdcst_count = _mm256_set1_epi32(size);
 
   for(int i = 0; i < FILETREE_COLUMNS; i ++) {
     __m256i masked_count = _mm256_and_si256(_mm256_loadu_si256(dir_adj + i), bdcst_count);
@@ -94,31 +130,6 @@ static inline void cd_parent(filetree_t *tree) {
   }
 }
 
-static inline uint32_t get_counts(filetree_t *tree, uint32_t bound) {
-  __m256i counts = _mm256_setzero_si256();
-  for(int i = 0; i < FILETREE_COLUMNS; i++) {
-    __m256i chunk = _mm256_loadu_si256((__m256i*)tree->counts + i);
-    __m256i mask = _mm256_cmpgt_epi32(_mm256_set1_epi32(bound + 1), chunk);
-    counts = _mm256_add_epi32(counts, _mm256_and_si256(chunk, mask));
-  }
-  return _mm256_hsum_epi32(counts);
-}
-
-static inline uint32_t get_smallest(filetree_t *tree, uint32_t total, uint32_t required) {
-  uint32_t unused = total - tree->counts[0];
-  uint32_t bound = required - unused;
-  __m256i smallest = _mm256_set1_epi32(INT32_MAX);
-  for(int i = 0; i < FILETREE_COLUMNS; i++) {
-    // If the value is below the required bound, clamp it to INT_MAX.
-    __m256i chunk = _mm256_loadu_si256((__m256i*)tree->counts + i);
-    __m256i mask = _mm256_cmpgt_epi32(chunk, _mm256_set1_epi32(bound + 1));
-
-    chunk = _mm256_blendv_ps(_mm256_set1_epi32(INT32_MAX), chunk, mask);
-    smallest = _mm256_min_epi32(smallest, chunk);
-  }
-  return _mm256_hmin_epi32(smallest);
-}
-
 static inline void exec_cmds(uint8_t *input, uint32_t len, filetree_t *tree) {
   // Skip the unitial 'cd /'.
   uint32_t offset = 7;
@@ -161,13 +172,13 @@ static inline void exec_cmds(uint8_t *input, uint32_t len, filetree_t *tree) {
     uint32_t num_digits = _mm_tzcnt_32(_mm_movemask_epi8(is_digit_mask));
     switch (num_digits) {
     case 4:
-      add_count(tree, parse_4_digits(chunk_lo));
+      add_file(tree, parse_4_digits(chunk_lo));
       break;
     case 5:
-      add_count(tree, parse_5_digits(chunk_lo));
+      add_file(tree, parse_5_digits(chunk_lo));
       break;
     case 6:
-      add_count(tree, parse_6_digits(chunk_lo));
+      add_file(tree, parse_6_digits(chunk_lo));
       break;
     }
 
@@ -175,6 +186,35 @@ static inline void exec_cmds(uint8_t *input, uint32_t len, filetree_t *tree) {
     offset += _mm_tzcnt_32(_mm256_movemask_epi8(newline_eq)) + 1;
   }
 }
+
+// Get the sum of all counts that are smaller than or equal to 'bound'.
+static inline uint32_t get_counts(filetree_t *tree, uint32_t bound) {
+  __m256i counts = _mm256_setzero_si256();
+  for(int i = 0; i < FILETREE_COLUMNS; i++) {
+    __m256i chunk = _mm256_loadu_si256((__m256i*)tree->counts + i);
+    __m256i mask = _mm256_cmpgt_epi32(_mm256_set1_epi32(bound + 1), chunk);
+    counts = _mm256_add_epi32(counts, _mm256_and_si256(chunk, mask));
+  }
+  return _mm256_hsum_epi32(counts);
+}
+
+// Get the smallest directory whose deletion will result in having at least
+// 'required' free space.
+static inline uint32_t get_smallest(filetree_t *tree, uint32_t total, uint32_t required) {
+  uint32_t unused = total - tree->counts[0];
+  uint32_t bound = required - unused;
+  __m256i smallest = _mm256_set1_epi32(INT32_MAX);
+  for(int i = 0; i < FILETREE_COLUMNS; i++) {
+    // If the value is below the required bound, clamp it to INT_MAX.
+    __m256i chunk = _mm256_loadu_si256((__m256i*)tree->counts + i);
+    __m256i mask = _mm256_cmpgt_epi32(chunk, _mm256_set1_epi32(bound + 1));
+
+    chunk = _mm256_blendv_ps(_mm256_set1_epi32(INT32_MAX), chunk, mask);
+    smallest = _mm256_min_epi32(smallest, chunk);
+  }
+  return _mm256_hmin_epi32(smallest);
+}
+
 
 int main() {
   filetree_t tree;
