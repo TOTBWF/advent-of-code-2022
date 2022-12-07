@@ -15,7 +15,7 @@ clean:
 ./asm/%.s: ./src/%.c ./input/%-input.h ./asm
 	clang $< -march=native -O3 -S -I ./input/ -masm=intel -o $@
 
-./bin/%: ./src/%.c ./input/%-input.h  ./bin
+./bin/%: ./src/%.c ./input/%-input.h ./src/simd.h ./bin
 	clang $< -march=native -O3 -I ./input/ -o $@
 
 ./bin:
